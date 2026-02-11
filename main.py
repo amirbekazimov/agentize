@@ -5,15 +5,13 @@ import anthropic
 from anthropic.types import ToolParam
 from termcolor import colored
 
-from tools import read_file_definition
+from tools import list_files_definition, read_file_definition
 
 
 class Agentize:
     def __init__(self):
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        self.tools = [
-            read_file_definition,
-        ]
+        self.tools = [read_file_definition, list_files_definition]
 
     def get_message(self):
         try:
@@ -24,7 +22,7 @@ class Agentize:
 
     def run(self):
         conversation = []
-        print("Chat with Claude (use 'ctrl/cmd + d' to quit)")
+        print("Chat with Claude (use 'ctrl + c' to quit)")
 
         read_user_input = True
         while True:
@@ -84,12 +82,12 @@ class Agentize:
                     "is_error": False,
                 }
 
-            return {
-                "type": "tool_result",
-                "tool_use_id": tool_id,
-                "content": "tool not found",
-                "is_error": True,
-            }
+        return {
+            "type": "tool_result",
+            "tool_use_id": tool_id,
+            "content": "tool not found",
+            "is_error": True,
+        }
 
     def run_inference(self, conversation):
 
