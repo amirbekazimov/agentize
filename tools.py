@@ -1,9 +1,8 @@
 import json
 import os
+from typing import Optional
 
-from anthropic.types.beta.beta_tool_param import InputSchema
 from pydantic import BaseModel, Field
-from typing_extensions import Optional
 
 
 class ToolDefinition:
@@ -53,7 +52,6 @@ def list_files(input_data):
 
             return json.dumps(results), None
 
-        pass
     except Exception as e:
         return "", str(e)
 

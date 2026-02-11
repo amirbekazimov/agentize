@@ -17,48 +17,49 @@ class Agentize:
         try:
             user_input = input()
             return user_input, bool(user_input)
-        except EOFError as e:
-            return "", str(e)
+        except EOFError:
+            return "", False
 
     def run(self):
         conversation = []
-        print("Chat with Claude (use 'ctrl + c' to quit)")
+        print("Chat with Claude (Ctrl+C or Ctrl+D to quit)")
+        try:
+            read_user_input = True
+            while True:
+                if read_user_input:
+                    print(colored("You: ", "blue"), end="")
 
-        read_user_input = True
-        while True:
-            if read_user_input:
-                print(colored("You: ", "blue"), end="")
+                    user_input, ok = self.get_message()
+                    if not ok:
+                        break
 
-                user_input, ok = self.get_message()
-                if not ok:
-                    break
+                    user_message = {
+                        "role": "user",
+                        "content": [{"type": "text", "text": user_input}],
+                    }
 
-                user_message = {
-                    "role": "user",
-                    "content": [{"type": "text", "text": user_input}],
-                }
+                    conversation.append(user_message)
 
-                conversation.append(user_message)
+                message = self.run_inference(conversation)
+                conversation.append({"role": "assistant", "content": message.content})
 
-            message = self.run_inference(conversation)
-            conversation.append({"role": "assistant", "content": message.content})
+                tool_results = []
+                for content in message.content:
+                    if content.type == "text":
+                        print(colored("Claude:", "yellow"), f"{content.text}")
+                    elif content.type == "tool_use":
+                        result = self.execute_tool(
+                            content.id, content.name, json.dumps(content.input)
+                        )
+                        tool_results.append(result)
 
-            tool_results = []
-            for content in message.content:
-                if content.type == "text":
-                    print(colored("Claude:", "yellow"), f"{content.text}")
-                elif content.type == "tool_use":
-                    result = self.execute_tool(
-                        content.id, content.name, json.dumps(content.input)
-                    )
-                    tool_results.append(result)
-
-                if not tool_results:
+                if tool_results:
+                    read_user_input = False
+                    conversation.append({"role": "user", "content": tool_results})
+                else:
                     read_user_input = True
-                    continue
-
-                read_user_input = False
-                conversation.append({"role": "user", "content": tool_results})
+        except KeyboardInterrupt:
+            print("\n👋 Exiting... Goodbye!")
 
     def execute_tool(self, tool_id, name, input_data):
 
