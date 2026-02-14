@@ -5,13 +5,13 @@ import anthropic
 from anthropic.types import ToolParam
 from termcolor import colored
 
-from tools import list_files_definition, read_file_definition
+from tools import edit_file_definition, list_files_definition, read_file_definition
 
 
 class Agentize:
     def __init__(self):
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        self.tools = [read_file_definition, list_files_definition]
+        self.tools = [read_file_definition, list_files_definition, edit_file_definition]
 
     def get_message(self):
         try:
@@ -62,7 +62,6 @@ class Agentize:
             print("\n👋 Exiting... Goodbye!")
 
     def execute_tool(self, tool_id, name, input_data):
-
         for tool in self.tools:
             if tool.name == name:
                 print(colored("tool:", "green"), f" {name}({input_data})")
@@ -102,8 +101,8 @@ class Agentize:
         ]
 
         return self.client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=1024,
+            model="claude-opus-4-5",
+            max_tokens=5000,
             messages=conversation,
             tools=tools,
         )
